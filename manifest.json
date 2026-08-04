@@ -1,0 +1,34 @@
+{
+  "manifest_version": 3,
+  "name": "Vigie Scam Multi-Plateformes",
+  "version": "1.0",
+  "browser_specific_settings": {
+    "gecko": {
+      "id": "vigie-scam@local.dev"
+    }
+  },
+  "permissions": [
+    "storage"
+  ],
+  "host_permissions": [
+    "https://www.reddit.com/*",
+    "https://*.leboncoin.fr/*",
+    "https://n8n-tregor-vigie.duckdns.org/*"
+  ],
+  "action": {
+    "default_popup": "popup.html"
+  },
+  "background": {
+    "scripts": ["background.js"]
+  },
+  "content_scripts": [
+    {
+      "matches": ["https://www.reddit.com/user/*"],
+      "js": ["content_reddit.js"]
+    },
+    {
+      "matches": ["https://www.leboncoin.fr/*"],
+      "js": ["content_lbc.js"]
+    }
+  ]
+}
