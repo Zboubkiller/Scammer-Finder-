@@ -4,7 +4,7 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
             try {
                 console.log("background.js -> Envoi de la requête vers le webhook n8n...");
                 
-                const webhookResponse = await fetch('https://n8n-tregor-vigie.duckdns.org/webhook/15f090c9-c92c-48c1-9ec4-0bf9defb2423', {
+                const webhookResponse = await fetch('N8N Webhook', {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json'
