@@ -1,0 +1,335 @@
+{
+  "name": "Audit Workflow Template",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "audit-webhook",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2.1,
+      "position": [
+        1584,
+        704
+      ],
+      "id": "ae2c387c-dbf2-4286-abf0-dba78aaa64da",
+      "name": "Webhook",
+      "webhookId": "15f090c9-c92c-48c1-9ec4-0bf9defb2423"
+    },
+    {
+      "parameters": {
+        "jsCode": "let aiOutput = $input.first().json.output || $input.first().json.text || $input.first().json.message;\n\nif (typeof aiOutput === 'string') {\n    aiOutput = aiOutput.replace(/```json/g, '').replace(/```/g, '').trim();\n    aiOutput = JSON.parse(aiOutput);\n}\n\nreturn [{ json: aiOutput }];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        3504,
+        896
+      ],
+      "id": "71b1c558-6507-4c15-8a09-eb9898771369",
+      "name": "Code in JavaScript"
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.5,
+      "position": [
+        3728,
+        896
+      ],
+      "id": "d651471e-b088-48dd-863c-cffc93efab21",
+      "name": "Respond to Webhook"
+    },
+    {
+      "parameters": {
+        "operation": "get",
+        "dataTableId": {
+          "__rl": true,
+          "value": "uRCZCsaE9mmwuVjj",
+          "mode": "list",
+          "cachedResultName": "audit_cache",
+          "cachedResultUrl": ""
+        },
+        "matchType": "allConditions",
+        "filters": {
+          "conditions": [
+            {
+              "keyName": "username",
+              "keyValue": "={{ $json.body.username }}"
+            },
+            {
+              "keyName": "platform",
+              "keyValue": "={{ $json.body.platform }}"
+            },
+            {
+              "keyName": "lang",
+              "keyValue": "={{ $json.body.user_language }}"
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.dataTable",
+      "typeVersion": 1.1,
+      "position": [
+        2032,
+        704
+      ],
+      "id": "e681654d-b09a-4542-ad53-e257b8bb21a8",
+      "name": "Get row(s)",
+      "alwaysOutputData": true
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "a0186527-3d6c-4d36-ae65-3af40816030f",
+              "leftValue": "={{ $('Get row(s)').item.json.username }}",
+              "rightValue": "",
+              "operator": {
+                "type": "string",
+                "operation": "notEmpty",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        2256,
+        704
+      ],
+      "id": "8364cd49-cae8-46da-bbc4-2cc7ef4d62e5",
+      "name": "If"
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.5,
+      "position": [
+        2704,
+        608
+      ],
+      "id": "2e292c48-fc4d-41b2-890f-3b84d64ea2d0",
+      "name": "Respond to Webhook1"
+    },
+    {
+      "parameters": {
+        "dataTableId": {
+          "__rl": true,
+          "value": "uRCZCsaE9mmwuVjj",
+          "mode": "list",
+          "cachedResultName": "audit_cache",
+          "cachedResultUrl": ""
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "username": "={{ $('Webhook').item.json.body.username }}",
+            "platform": "={{ $('Webhook').item.json.body.platform }}",
+            "isSuspicious": "={{ $json.isSuspicious }}",
+            "reason": "={{ $json.reason }}",
+            "lang": "={{ $('Webhook').item.json.body.user_language }}"
+          },
+          "matchingColumns": [],
+          "schema": []
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.dataTable",
+      "typeVersion": 1.1,
+      "position": [
+        3952,
+        896
+      ],
+      "id": "5c05127b-1873-4b11-9119-eb87f58aca92",
+      "name": "Insert row"
+    },
+    {
+      "parameters": {
+        "jsCode": "const data = $json;\nconst isSuspicious = data.isSuspicious === 1 || data.isSuspicious === \"1\" || data.isSuspicious === true || data.isSuspicious === \"true\";\n\nreturn {\n  isSuspicious: isSuspicious,\n  reason: \"ℹ️ [En cache] \" + (data.reason || \"Profil déjà audité.\")\n};"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        2480,
+        608
+      ],
+      "id": "9fdf0a4f-cfae-4e06-8545-653a7415e9e5",
+      "name": "Code in JavaScript1"
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatGoogleVertex",
+      "typeVersion": 1,
+      "position": [
+        3232,
+        1120
+      ],
+      "id": "05f9dac0-b8cb-4b8f-be91-fb23a9a06289",
+      "name": "Google Vertex Chat Model",
+      "credentials": {}
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=Tu es un analyste senior en cybersécurité.\n\nTa mission est d'évaluer les données d'activité transmises pour déterminer si le profil est suspect ou légitime.\n\n--- DONNÉES DE L'UTILISATEUR ---\n- Plateforme : {{ $('Webhook').item.json.body.platform }}\n- Identifiant : {{ $('Webhook').item.json.body.username }}\n- Langue de l'utilisateur : {{ $('Webhook').item.json.body.user_language }}\n- Historique d'activité : {{ JSON.stringify($('Webhook').item.json.body.activity) }}\n\n--- FORMAT DE SORTIE EXCLUSIF ---\nRéponds EXCLUSIVEMENT sous la forme d'un objet JSON strict sans balises Markdown :\n\n{\n  \"isSuspicious\": true,\n  \"reason\": \"Explication synthétique rédigée dans la langue de l'utilisateur.\"\n}",
+        "batching": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.chainLlm",
+      "typeVersion": 1.9,
+      "position": [
+        3152,
+        896
+      ],
+      "id": "cc2f9413-865a-4303-9aaf-85ce65e0e62f",
+      "name": "Basic LLM Chain1"
+    },
+    {
+      "parameters": {
+        "jsCode": "for (const item of $input.all()) {\n  let webhookData = $('Webhook').first().json;\n  let body = webhookData.body || {};\n\n  if (body.activity && Array.isArray(body.activity)) {\n    body.activity = body.activity.slice(0, 15);\n  }\n  if (body.comments && Array.isArray(body.comments)) {\n    body.comments = body.comments.slice(0, 15);\n  }\n  if (body.posts && Array.isArray(body.posts)) {\n    body.posts = body.posts.slice(0, 15);\n  }\n\n  webhookData.body = body;\n  item.json = webhookData;\n}\n\nreturn $input.all();"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        2928,
+        896
+      ],
+      "id": "36ab8f6d-fee2-4229-83a4-a34592a7cc5e",
+      "name": "Code in JavaScript3"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Webhook": {
+      "main": [
+        [
+          {
+            "node": "Get row(s)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code in JavaScript": {
+      "main": [
+        [
+          {
+            "node": "Respond to Webhook",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get row(s)": {
+      "main": [
+        [
+          {
+            "node": "If",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If": {
+      "main": [
+        [
+          {
+            "node": "Code in JavaScript1",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Code in JavaScript3",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Respond to Webhook": {
+      "main": [
+        [
+          {
+            "node": "Insert row",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code in JavaScript1": {
+      "main": [
+        [
+          {
+            "node": "Respond to Webhook1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code in JavaScript3": {
+      "main": [
+        [
+          {
+            "node": "Basic LLM Chain1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Google Vertex Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Basic LLM Chain1",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Basic LLM Chain1": {
+      "main": [
+        [
+          {
+            "node": "Code in JavaScript",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate",
+    "availableInMCP": false
+  }
+}
