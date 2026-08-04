@@ -48,7 +48,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
             try {
                 // Requête vers ton webhook n8n
-                const response = await fetch('https://TON-URL-DE-WEBHOOK-N8N', {
+                const response = await fetch('https://N8N Webhook', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({
